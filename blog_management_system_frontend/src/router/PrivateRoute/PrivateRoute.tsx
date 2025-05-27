@@ -6,19 +6,17 @@ import { useSession } from '../../hooks'
 import { validateUserPermissions } from '../../utils'
 
 type Props = {
-  permissions?: string[]
   roles?: string[]
   redirectTo?: string
   children: ReactNode
 }
 
 function PrivateRoute(props: Props) {
-  const { permissions, roles, redirectTo = '/login', children } = props
+  const { roles, redirectTo = '/login', children } = props
 
   const { isAuthenticated, user, loadingUserData } = useSession()
-  const { hasAllPermissions } = validateUserPermissions({
+  const { hasRole } = validateUserPermissions({
     user,
-    permissions,
     roles
   })
 
@@ -30,7 +28,7 @@ function PrivateRoute(props: Props) {
     return <Navigate to={redirectTo} />
   }
 
-  if (!hasAllPermissions) {
+  if (!hasRole) {
     return <Navigate to="/" />
   }
 

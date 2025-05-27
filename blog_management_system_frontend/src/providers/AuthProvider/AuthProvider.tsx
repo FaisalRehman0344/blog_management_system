@@ -1,10 +1,12 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { AuthContext, SignInCredentials, User } from '../../contexts'
+import { AuthContext, SignInCredentials } from '../../contexts'
 import { paths } from '../../router'
 import { api, setAuthorizationHeader } from '../../services'
-import { createSessionCookies, getToken, removeSessionCookies } from '../../utils'
+import { createSessionCookies, getRefreshToken, getToken, removeSessionCookies } from '../../utils'
+import { User } from 'types'
+import { RegisterProps } from 'contexts/AuthContext/AuthContext'
 
 type Props = {
   children: ReactNode
@@ -25,19 +27,45 @@ function AuthProvider(props: Props) {
     const { email, password } = params
 
     try {
-      const response = await api.post('/sessions', { email, password })
-      const { token, refreshToken, permissions, roles } = response.data
+      const response = await api.post('/auth/login', { email, password })
+      const { user, tokens } = response.data
 
-      createSessionCookies({ token, refreshToken })
-      setUser({ email, permissions, roles })
-      setAuthorizationHeader({ request: api.defaults, token })
+      createSessionCookies({ token: tokens.access.token, refreshToken: tokens.refresh.token })
+      setUser(user)
+      setAuthorizationHeader({ request: api.defaults, token: tokens.access.token })
     } catch (error) {
       const err = error as AxiosError
       return err
     }
   }
 
-  function signOut() {
+  async function register(details: RegisterProps,cb:any) {
+
+    try {
+      const response = await api.post('/auth/register', details)
+      const { user, tokens } = response.data
+
+      createSessionCookies({ token: tokens.access.token, refreshToken: tokens.refresh.token })
+      setUser(user)
+      setAuthorizationHeader({ request: api.defaults, token: tokens.access.token })
+      cb();
+    } catch (error) {
+      const err = error as AxiosError
+      return err
+    }
+  }
+
+  async function signOut() {
+
+    const refreshToken = getRefreshToken();
+
+    try {
+      await api.post('/auth/logout', { refreshToken });
+    } catch (error) {
+      const err = error as AxiosError
+      return err
+    }
+
     removeSessionCookies()
     setUser(undefined)
     setLoadingUserData(false)
@@ -62,8 +90,8 @@ function AuthProvider(props: Props) {
         const response = await api.get('/me')
 
         if (response?.data) {
-          const { email, permissions, roles } = response.data
-          setUser({ email, permissions, roles })
+          const { user } = response.data
+          setUser(user)
         }
       } catch (error) {
         /**
@@ -87,6 +115,7 @@ function AuthProvider(props: Props) {
         user,
         loadingUserData,
         signIn,
+        register,
         signOut
       }}
     >

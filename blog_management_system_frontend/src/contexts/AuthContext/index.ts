@@ -1,2 +1,2 @@
-export type { AuthContextData, SignInCredentials, User } from './AuthContext'
+export type { AuthContextData, SignInCredentials } from './AuthContext'
 export { default as AuthContext } from './AuthContext'

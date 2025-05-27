@@ -1,44 +1,22 @@
-import { useRoutePaths, useSession } from '../../hooks'
-import { Link } from 'react-router-dom'
-import { CanAccess } from '../CanAccess'
+import { useNavigate } from 'react-router-dom'
+import { useSession } from '../../hooks'
+import { Button } from '@mui/material'
 
 function NavBar() {
-  const { isAuthenticated, user, signOut } = useSession()
-  const { LOGIN_PATH, METRICS_PATH, REGISTER_PATH, ROOT_PATH, USERS_PATH } =
-    useRoutePaths()
+  const { signOut, isAuthenticated } = useSession()
+  const navigate = useNavigate();
 
   return (
     <div>
-      <ul>
-        <li>
-          <Link to={LOGIN_PATH}>Login</Link>
-        </li>
-        <li>
-          <Link to={REGISTER_PATH}>Register</Link>
-        </li>
-        <li>
-          <Link to={ROOT_PATH}>Home</Link>
-        </li>
-
-        <CanAccess permissions={['users.list']}>
-          <li>
-            <Link to={USERS_PATH}>Users</Link>
-          </li>
-        </CanAccess>
-
-        <CanAccess permissions={['metrics.list']}>
-          <li>
-            <Link to={METRICS_PATH}>Metrics</Link>
-          </li>
-        </CanAccess>
-      </ul>
-
-      {isAuthenticated && (
-        <>
-          <span style={{ marginRight: 4 }}>{user?.email}</span>
-          <button onClick={signOut}>Logout</button>
-        </>
-      )}
+      <div style={{ backgroundColor: '#6f6f77', height: '80px' }} className='d-flex align-items-center justify-content-between w-100 px-3'>
+        <h2 style={{ color: 'white' }}>Blog Management System</h2>
+        {isAuthenticated && <div>
+          <Button size='large' variant='outlined' onClick={signOut}>Logout</Button>
+        </div>}
+        {!isAuthenticated && <div>
+          <Button size='large' variant='outlined' onClick={() => {navigate('/login')}}>Login</Button>
+        </div>}
+      </div>
     </div>
   )
 }

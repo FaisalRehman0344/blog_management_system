@@ -1,0 +1,9 @@
+.h-screen-full {
+    height: 100vh;
+}
+
+.d-center {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+}

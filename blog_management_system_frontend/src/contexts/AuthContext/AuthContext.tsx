@@ -1,13 +1,14 @@
 import { AxiosError } from 'axios'
 import { createContext } from 'react'
-
-export type User = {
-  email: string
-  permissions: string[]
-  roles: string[]
-}
+import { User } from 'types'
 
 export type SignInCredentials = {
+  email: string
+  password: string
+}
+
+export type RegisterProps = {
+  name: string
   email: string
   password: string
 }
@@ -18,6 +19,7 @@ export type AuthContextData = {
   loadingUserData: boolean
   signIn: (credentials: SignInCredentials) => Promise<void | AxiosError>
   signOut: () => void
+  register: (details: RegisterProps,cb:any) => void
 }
 
 const AuthContext = createContext({} as AuthContextData)
