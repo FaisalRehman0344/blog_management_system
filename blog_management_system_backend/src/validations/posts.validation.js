@@ -13,7 +13,9 @@ const getPosts = {
   query: Joi.object().keys({
     title: Joi.string(),
     content: Joi.string(),
-    tags: Joi.array().items(Joi.string()),
+    tag: Joi.string(),
+    status: Joi.string(),
+    author: Joi.custom(objectId),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),

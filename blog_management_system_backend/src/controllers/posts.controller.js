@@ -4,7 +4,7 @@ const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { postsService } = require('../services');
 const { Roles } = require('../config/roles');
-const { PostStatus } = require('../utils/Constants');
+const { default: mongoose } = require('mongoose');
 
 const createPost = catchAsync(async (req, res) => {
   const payload = req.body;
@@ -14,19 +14,40 @@ const createPost = catchAsync(async (req, res) => {
 });
 
 const getPosts = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['title', 'content', 'tags']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  filter.status = PostStatus.PUBLISHED;
-  const result = await postsService.getPosts(filter, options);
-  res.send(result);
-});
+  const filter = []
+  const orCondition = [];
+  const my = req.my;
 
-const getMyPosts = catchAsync(async (req, res) => {
-  const posts = await postsService.getMyPosts(req.user.id);
-  if (!posts) {
-    throw new ApiError(httpStatus.status.NOT_FOUND, 'Posts not found');
+  const { title, content, tag, status } = req.query;
+
+  if (!!my && !!req.user) {
+    filter.push({ author: new mongoose.Types.ObjectId(req.user.id) });
   }
-  res.send(posts);
+
+  if (!!title) {
+    orCondition.push({ title: { $regex: title, $options: 'i' } })
+  }
+
+  if (!!content) {
+    orCondition.push({ content: { $regex: content, $options: 'i' } })
+  }
+
+  if (!!tag) {
+    orCondition.push({ tags: { $in: [tag] } });
+  }
+
+  if (!!status) {
+    filter.push({ status })
+  }
+
+  if (orCondition.length) {
+    filter.push({ $or: orCondition });
+  }
+
+  const query = filter.length > 0 ? { $and: filter } : {};
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const result = await postsService.getPosts(query, options);
+  res.send(result);
 });
 
 const updatePost = catchAsync(async (req, res) => {
@@ -79,7 +100,6 @@ const getComments = catchAsync(async (req, res) => {
 module.exports = {
   createPost,
   getPosts,
-  getMyPosts,
   updatePost,
   deletePost,
   publishUnpublishPost,

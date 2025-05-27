@@ -17,11 +17,6 @@ const getPostById = (id) => {
   return Posts.findById(id);
 };
 
-const getMyPosts = (userId) => {
-  return Posts.find({ author: new mongoose.Types.ObjectId(userId) });
-
-};
-
 const updatePost = async (id, post) => {
   const updatedPost = await Posts.updateOne({ _id: id }, { $set: post });
   if (!updatedPost) {
@@ -65,7 +60,6 @@ module.exports = {
   createPost,
   getPosts,
   getPostById,
-  getMyPosts,
   updatePost,
   deletePost,
   publishUnpublishPost,
